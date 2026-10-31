@@ -52,7 +52,7 @@ public final class FloorPlanActivity extends Activity implements FloorPlanView.S
     private int floorIndex=0,threshold=145;
     private String mode="browse",layer="all",selectedMarkerId="",selectedRoomId="";
     private Uri cameraUri;
-    private boolean vectorMode=false,busy=false;
+    private boolean vectorMode=false,busy=false,remoteOnline=false;
     private final android.os.Handler timer=new android.os.Handler(android.os.Looper.getMainLooper());
     private final Runnable refreshJob=new Runnable(){
         @Override public void run(){
@@ -69,8 +69,13 @@ public final class FloorPlanActivity extends Activity implements FloorPlanView.S
         getWindow().setNavigationBarColor(CasaUi.BG);
         store=new FloorPlanStore(this);
         secret=new SecureConfig(this);
-        DemoRepository demo=new DemoRepository();devices=demo.entities();
-        if(secret.configured())repo=new HomeRepository(secret.url(),secret.token());
+        if(secret.configured()){
+            repo=new HomeRepository(secret.url(),secret.token());
+            devices=new ArrayList<>();
+        } else {
+            DemoRepository demo=new DemoRepository();
+            devices=demo.entities();
+        }
         setup();
         if(repo!=null)loadDevices();
     }
@@ -102,7 +107,8 @@ public final class FloorPlanActivity extends Activity implements FloorPlanView.S
 
         map=new FloorPlanView(this);
         map.setOled(Appearance.oled(this));
-        map.configure(current(),store.getBitmap(current()),this,this::find);
+        map.configure(current(),store.getBitmap(current()),this,
+            id -> (repo!=null&&!remoteOnline)?null:find(id));
         root.addView(map,new LinearLayout.LayoutParams(-1,0,1f));
 
         controls=CasaUi.column(this);
@@ -178,7 +184,8 @@ public final class FloorPlanActivity extends Activity implements FloorPlanView.S
             }).show();
     }
     private void reloadPlan(){
-        map.configure(current(),store.getBitmap(current()),this,this::find);
+        map.configure(current(),store.getBitmap(current()),this,
+            id -> (repo!=null&&!remoteOnline)?null:find(id));
         map.setMode(mode);map.setLayer(layer);map.vectorOnly(vectorMode);
         toolbar();
     }
@@ -539,12 +546,15 @@ public final class FloorPlanActivity extends Activity implements FloorPlanView.S
             try{
                 List<HaEntity> next=repo.entities();
                 runOnUiThread(()->{
-                    devices=next;map.invalidate();statusText.setText(
+                    devices=next;remoteOnline=true;map.invalidate();statusText.setText(
                         current().name+" · "+current().rooms.length()+" Räume · "
                         +current().markers.length()+" Marker · Online");
                 });
             }catch(Exception ex){
-                runOnUiThread(()->statusText.setText(current().name+" · Offline/Status unbekannt"));
+                runOnUiThread(()->{
+                    remoteOnline=false;map.invalidate();
+                    statusText.setText(current().name+" · Offline/Status unbekannt");
+                });
             }
         });
     }
