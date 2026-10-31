@@ -97,7 +97,7 @@ public final class FloorPlanView extends View {
     private int dp(int n){return Math.round(getResources().getDisplayMetrics().density*n);}
     private void color(int argb){paint.reset();paint.setAntiAlias(true);paint.setColor(argb);}
     private int ink(){return oled?Color.WHITE:0xFF243349;}
-    private int bg(){return oled?0xFF0B0F16:0xFFF4F7FB;}
+    private int bg(){return oled?Color.BLACK:Color.WHITE;}
 
     @Override protected void onDraw(Canvas canvas){
         super.onDraw(canvas);
