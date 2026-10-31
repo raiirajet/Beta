@@ -150,6 +150,11 @@ public final class PlanConverter {
           suggestedRooms.length()+" Raumvorschläge · "+vectorWalls.length()+" Wandsegmente. Bitte mit dem Originalplan vergleichen.");
     }
     private static void addPoint(JSONArray points,double x,double y){
-        JSONArray point=new JSONArray();point.put(x);point.put(y);points.put(point);
+        try {
+            JSONArray point=new JSONArray();
+            point.put(x);point.put(y);points.put(point);
+        } catch(org.json.JSONException ignored) {
+            // Reject non-finite coordinates instead of crashing the converter.
+        }
     }
 }
