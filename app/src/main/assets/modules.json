@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "architecture": "Home Assistant integrates providers; UI modules extend by entity domain",
+  "modules": [
+    {
+      "id": "light",
+      "domains": [
+        "light",
+        "switch"
+      ],
+      "actions": [
+        "turn_on",
+        "turn_off"
+      ]
+    },
+    {
+      "id": "heating",
+      "domains": [
+        "climate",
+        "fan",
+        "water_heater"
+      ],
+      "actions": [
+        "set_temperature",
+        "set_hvac_mode",
+        "set_fan_mode"
+      ],
+      "house": [
+        "Fussbodenheizung",
+        "Fan-Coils",
+        "Wärmepumpe"
+      ]
+    },
+    {
+      "id": "security",
+      "domains": [
+        "lock",
+        "cover",
+        "binary_sensor"
+      ],
+      "actions": [
+        "lock",
+        "unlock",
+        "open_cover",
+        "close_cover"
+      ]
+    },
+    {
+      "id": "camera",
+      "domains": [
+        "camera"
+      ],
+      "actions": [
+        "snapshot"
+      ],
+      "planned": [
+        "livestream"
+      ]
+    },
+    {
+      "id": "sensors",
+      "domains": [
+        "sensor"
+      ],
+      "actions": [
+        "status"
+      ]
+    },
+    {
+      "id": "other",
+      "domains": [
+        "scene",
+        "button"
+      ],
+      "actions": [
+        "turn_on",
+        "press"
+      ]
+    }
+  ]
+}
