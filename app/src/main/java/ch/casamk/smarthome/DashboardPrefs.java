@@ -61,7 +61,17 @@ public final class DashboardPrefs {
     public String room(HaEntity e, boolean demo) {
         String saved=prefs.getString("entity_room:"+e.id,null);
         if(saved!=null) return saved;
-        if (!demo) return "Nicht zugeordnet";
+        if (!demo) {
+            // Name-based suggestion; explicit user assignments always take priority.
+            String hint = (e.id + " " + e.name).toLowerCase(java.util.Locale.ROOT)
+                .replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss");
+            for (String candidate : rooms()) {
+                String normalized = candidate.toLowerCase(java.util.Locale.ROOT)
+                    .replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss");
+                if (hint.contains(normalized)) return candidate;
+            }
+            return "Nicht zugeordnet";
+        }
         String id=e.id.toLowerCase(java.util.Locale.ROOT);
         if(id.contains("wohn") || id.contains("fussboden"))return "Wohnzimmer";
         if(id.contains("kuech"))return "Küche";

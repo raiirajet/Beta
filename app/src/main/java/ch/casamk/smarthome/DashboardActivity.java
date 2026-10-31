@@ -97,6 +97,17 @@ public final class DashboardActivity extends Activity {
         navbar=row();navbar.setBackground(CasaUi.outline(this,CasaUi.BG,CasaUi.LINE,0));
         navbar.setPadding(d(8),d(7),d(8),d(12));
         root.addView(navbar,new LinearLayout.LayoutParams(-1,d(78)));
+        // Android 15 enforces edge-to-edge for apps targeting API 35.
+        // Keep the dashboard and navigation dock clear of system bars.
+        if(android.os.Build.VERSION.SDK_INT >= 35) {
+            root.setOnApplyWindowInsetsListener((v,insets)->{
+                android.graphics.Insets bars=insets.getInsets(
+                        android.view.WindowInsets.Type.statusBars()
+                        | android.view.WindowInsets.Type.navigationBars());
+                root.setPadding(0,bars.top,0,bars.bottom);
+                return insets;
+            });
+        }
         setContentView(root);
     }
     private void render(){
