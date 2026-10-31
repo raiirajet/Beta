@@ -5,13 +5,11 @@
     <application
         android:allowBackup="false"
         android:usesCleartextTraffic="false"
-        android:label="CasaMK"
+        android:label="CasaMK Smart Home"
         android:theme="@style/Theme.CasaMK"
-        android:icon="@android:drawable/ic_menu_myplaces"
+        android:icon="@drawable/ic_casamk"
         android:supportsRtl="true">
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
+        <activity android:name=".DashboardActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
