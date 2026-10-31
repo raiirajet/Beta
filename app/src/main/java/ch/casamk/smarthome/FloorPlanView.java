@@ -83,7 +83,11 @@ public final class FloorPlanView extends View {
     public int draftCount(){return draft.size();}
     public JSONArray draftPoints(){
         JSONArray points=new JSONArray();
-        for(float[] p:draft){JSONArray a=new JSONArray();a.put(p[0]);a.put(p[1]);points.put(a);}
+        for(float[] p:draft){
+            try{
+                JSONArray a=new JSONArray();a.put((double)p[0]);a.put((double)p[1]);points.put(a);
+            }catch(org.json.JSONException ignored){}
+        }
         return points;
     }
     public void clearDraft(){draft.clear();invalidate();}
