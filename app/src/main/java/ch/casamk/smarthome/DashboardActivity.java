@@ -50,6 +50,7 @@ public final class DashboardActivity extends Activity {
     private DashboardPrefs prefs;
     private DemoRepository demo;
     private HomeRepository remote;
+    private HomeLive live;
     private List<HaEntity> entities=new ArrayList<>();
     private LinearLayout root,body,navbar;
     private ScrollView scroll;
@@ -82,8 +83,47 @@ public final class DashboardActivity extends Activity {
             openPlan();
         }
     }
-    @Override protected void onResume(){super.onResume();handler.removeCallbacks(autoSync);handler.postDelayed(autoSync,45000);}
-    @Override protected void onPause(){handler.removeCallbacks(autoSync);super.onPause();}
+    @Override protected void onResume(){
+        super.onResume();
+        handler.removeCallbacks(autoSync);handler.postDelayed(autoSync,45000);
+        attachEvents();
+    }
+    @Override protected void onPause(){
+        handler.removeCallbacks(autoSync);
+        if(live!=null){live.close();live=null;}
+        super.onPause();
+    }
+    private void attachEvents(){
+        if(live!=null){live.close();live=null;}
+        if(!config.configured())return;
+        try{
+            live=new HomeLive(config.url(),config.token(),new HomeLive.Listener(){
+                @Override public void onState(HaEntity state){
+                    runOnUiThread(()->{
+                        if(demoMode)return;
+                        boolean replaced=false;
+                        for(int i=0;i<entities.size();i++)if(entities.get(i).id.equals(state.id)){
+                            entities.set(i,state);replaced=true;break;
+                        }
+                        if(!replaced)entities.add(state);
+                        connection="ONLINE · Live";
+                        render();
+                    });
+                }
+                @Override public void onRemoved(String entityId){
+                    runOnUiThread(()->{
+                        if(demoMode)return;
+                        entities.removeIf(e->e.id.equals(entityId));render();
+                    });
+                }
+                @Override public void onConnected(boolean online){
+                    if(!online)runOnUiThread(()->{
+                        if(!demoMode){connection="Status wird abgefragt";render();}
+                    });
+                }
+            });
+        }catch(Exception ex){ /* REST polling remains available */ }
+    }
     @Override protected void onDestroy(){handler.removeCallbacks(autoSync);io.shutdownNow();super.onDestroy();}
 
     private int d(int px){return CasaUi.dp(this,px);}
@@ -920,6 +960,7 @@ public final class DashboardActivity extends Activity {
                     String value=token.getText().toString().trim();
                     if(value.isEmpty())value=config.token();
                     config.save(host.getText().toString(),value);
+                    attachEvents();
                     refresh(true);
                 }catch(Exception ex){message(ex.getMessage());}
             }).show();

@@ -44,6 +44,7 @@ public final class FloorPlanActivity extends Activity implements FloorPlanView.S
     private FloorPlanStore store;
     private SecureConfig secret;
     private HomeRepository repo;
+    private HomeLive live;
     private final ExecutorService executor=Executors.newSingleThreadExecutor();
     private List<HaEntity> devices=new ArrayList<>();
     private FloorPlanView map;
@@ -79,8 +80,43 @@ public final class FloorPlanActivity extends Activity implements FloorPlanView.S
         setup();
         if(repo!=null)loadDevices();
     }
-    @Override protected void onResume(){super.onResume();timer.removeCallbacks(refreshJob);timer.postDelayed(refreshJob,20000);}
-    @Override protected void onPause(){timer.removeCallbacks(refreshJob);super.onPause();}
+    @Override protected void onResume(){
+        super.onResume();timer.removeCallbacks(refreshJob);timer.postDelayed(refreshJob,20000);
+        connectLive();
+    }
+    @Override protected void onPause(){
+        timer.removeCallbacks(refreshJob);
+        if(live!=null){live.close();live=null;}
+        super.onPause();
+    }
+    private void connectLive(){
+        if(repo==null)return;
+        if(live!=null){live.close();live=null;}
+        try{
+            live=new HomeLive(secret.url(),secret.token(),new HomeLive.Listener(){
+                @Override public void onState(HaEntity update){
+                    runOnUiThread(()->{
+                        remoteOnline=true;
+                        boolean found=false;
+                        for(int i=0;i<devices.size();i++)if(devices.get(i).id.equals(update.id)){
+                            devices.set(i,update);found=true;break;
+                        }
+                        if(!found)devices.add(update);
+                        map.invalidate();
+                    });
+                }
+                @Override public void onRemoved(String entityId){
+                    runOnUiThread(()->{devices.removeIf(e->e.id.equals(entityId));map.invalidate();});
+                }
+                @Override public void onConnected(boolean online){
+                    if(!online)runOnUiThread(()->{
+                        remoteOnline=false;map.invalidate();
+                        statusText.setText(current().name+" · Echtzeitverbindung unterbrochen");
+                    });
+                }
+            });
+        }catch(Exception ignored){ /* 20s REST polling is a fallback */ }
+    }
     @Override protected void onDestroy(){timer.removeCallbacks(refreshJob);executor.shutdownNow();super.onDestroy();}
     private int dp(int n){return CasaUi.dp(this,n);}
     private FloorPlanStore.Floor current(){return store.at(floorIndex);}
