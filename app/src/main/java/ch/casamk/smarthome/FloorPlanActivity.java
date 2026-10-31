@@ -425,9 +425,13 @@ public final class FloorPlanActivity extends Activity implements FloorPlanView.S
                 double dist=Math.pow(x-p.optDouble(0),2)+Math.pow(y-p.optDouble(1),2);
                 if(dist<min){min=dist;nearest=i;}
             }
-            JSONArray changed=new JSONArray();changed.put(x);changed.put(y);
-            try{polygon.put(nearest,changed);store.save();map.invalidate();}
-            catch(Exception e){toast(e.getMessage());}
+            try{
+                JSONArray changed=new JSONArray();
+                changed.put((double)x);
+                changed.put((double)y);
+                polygon.put(nearest,changed);
+                store.save();map.invalidate();
+            }catch(Exception e){toast(e.getMessage());}
             // Keep mode active for additional corner adjustments.
             toast("Nächste Ecke verschieben oder «Abbrechen» wählen");
         }
