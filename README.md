@@ -1,4 +1,4 @@
-# CasaMK Smart Home 0.3 — Grundriss-Beta
+# CasaMK Smart Home 0.4 — Grundriss-Beta
 
 Modulare Android-App für das Haus in Nordmazedonien. Android 11+.
 
@@ -10,7 +10,7 @@ Modulare Android-App für das Haus in Nordmazedonien. Android 11+.
 - **Manueller Editor:** Räume per Polygonpunkten zeichnen, umbenennen, Eckpunkte korrigieren; Marker aus der Geräteliste auf dem Grundriss platzieren, verschieben, beschriften und löschen.
 - **Zustandsfarben:** grün = aktiv, grau = aus, rot = erkannter Fehler, gelb = unbekannt/nicht erreichbar. Sensoren haben eine eigene Farbe. Bei Klima gilt Sollmodus `heat` allein ausdrücklich nicht als bestätigter Heizbetrieb.
 - **Lokale Sicherung:** Grundriss inklusive eingebetteter Bilder, Räume, Gerätemarker und Stockwerke als JSON exportieren/importieren.
-- **Geräteintegration:** Home Assistant über HTTPS (API); Grundrisszustände werden gegenwärtig ungefähr alle 20 Sekunden erneut geladen. Diese Version hat noch **keine permanente WebSocket-Übertragung**.
+- **Geräteintegration:** Home Assistant über HTTPS (API) und **WebSocket-Ereignisse**. Zustandsänderungen können unmittelbar auf Dashboard und Grundriss erscheinen. Zusätzlich bleibt eine periodische REST-Abfrage als Rückfalllösung (Grundriss rund 20 Sekunden). Dies ist noch kein umfassend getestetes produktives Echtzeit- oder Störungsalarmsystem.
 - **Bisherige Funktionen:** Dashboard, Räume, Favoriten, Licht, Fussbodenheizung, Fan-Coils, Türschlösser mit Android-Sicherheitsabfrage, Kamerastandbilder.
 
 ## Grundriss verwenden
@@ -39,4 +39,4 @@ CasaMK ersetzt niemals die Sicherheitsregelung von Wärmepumpe, Fan-Coils oder F
 - `PlanConverter`: deterministischer Offline-2D-Converter
 - `HomeRepository`, `SecureConfig`: sichere Hausanbindung
 
-Version 0.3, Android Gradle Plugin 8.11.1, Gradle 8.13, Java 17, compileSdk 36.
+Version 0.4, Android Gradle Plugin 8.11.1, Gradle 8.13, Java 17, compileSdk 36.
