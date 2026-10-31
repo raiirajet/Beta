@@ -27,9 +27,10 @@ public final class PlanConverter {
     private PlanConverter(){}
     public static Result analyze(Bitmap original,int darkness){
         if(original==null)return new Result(new JSONArray(),new JSONArray(),"Bild fehlt");
-        final int w=320;
-        final int h=Math.max(60,Math.round(original.getHeight()*320f/original.getWidth()));
-        if(h>560)return analyze(Bitmap.createScaledBitmap(original,Math.max(60,320*560/h),560,true),darkness);
+        final int w=Math.max(64,Math.min(320,
+            Math.round(560f*original.getWidth()/Math.max(1,original.getHeight()))));
+        final int h=Math.max(60,Math.min(560,
+            Math.round(original.getHeight()*w/(float)Math.max(1,original.getWidth()))));
         Bitmap bmp=Bitmap.createScaledBitmap(original,w,h,true);
         int[] pixels=new int[w*h];bmp.getPixels(pixels,0,w,0,0,w,h);
         boolean[] dark=new boolean[w*h];

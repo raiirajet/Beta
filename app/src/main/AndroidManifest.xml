@@ -9,6 +9,7 @@
         android:theme="@style/Theme.CasaMK"
         android:icon="@drawable/ic_casamk"
         android:supportsRtl="true">
+        <activity android:name=".FloorPlanActivity" android:exported="false" />
         <activity android:name=".DashboardActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

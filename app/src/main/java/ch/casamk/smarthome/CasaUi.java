@@ -12,17 +12,26 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 final class CasaUi {
-    static final int BG=Color.rgb(12,19,32);
-    static final int PANEL=Color.rgb(24,36,54);
-    static final int PANEL_ALT=Color.rgb(31,46,66);
-    static final int WHITE=Color.rgb(246,249,255);
-    static final int MUTED=Color.rgb(157,177,198);
-    static final int TEAL=Color.rgb(95,225,197);
-    static final int GOLD=Color.rgb(255,199,112);
-    static final int BLUE=Color.rgb(127,165,255);
-    static final int RED=Color.rgb(252,143,138);
-    static final int LINE=Color.rgb(42,58,77);
+    static int BG,PANEL,PANEL_ALT,WHITE,MUTED,TEAL,GOLD,BLUE,RED,LINE;
     private CasaUi(){}
+    static void applyTheme(Activity a){
+        boolean dark=Appearance.oled(a);
+        BG=dark?0xFF000000:0xFFFFFFFF;
+        PANEL=dark?0xFF131518:0xFFF7F9FC;
+        PANEL_ALT=dark?0xFF22272E:0xFFE8EEF4;
+        WHITE=dark?0xFFF8FAFF:0xFF172235;
+        MUTED=dark?0xFFABBACB:0xFF5B6981;
+        TEAL=dark?0xFF56E0B1:0xFF087961;
+        GOLD=dark?0xFFFFC770:0xFF9A620E;
+        BLUE=dark?0xFF96B1FF:0xFF3758A0;
+        RED=dark?0xFFFF8E91:0xFFC43143;
+        LINE=dark?0xFF30353D:0xFFD7DFE9;
+        a.getWindow().setStatusBarColor(BG);
+        a.getWindow().setNavigationBarColor(BG);
+        a.getWindow().getDecorView().setSystemUiVisibility(dark?0:
+            android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+             |android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+    }
     static int dp(Activity a,int n){return (int)(a.getResources().getDisplayMetrics().density*n+.5f);}
     static GradientDrawable rounded(Activity a,int color,int radius){
         GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(a,radius));return d;

@@ -2,6 +2,7 @@ package ch.casamk.smarthome;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -66,8 +67,7 @@ public final class DashboardActivity extends Activity {
 
     @Override public void onCreate(Bundle b){
         super.onCreate(b);
-        getWindow().setStatusBarColor(CasaUi.BG);
-        getWindow().setNavigationBarColor(CasaUi.BG);
+        CasaUi.applyTheme(this);
         config=new SecureConfig(this);
         prefs=new DashboardPrefs(this);
         demo=new DemoRepository();
@@ -75,6 +75,12 @@ public final class DashboardActivity extends Activity {
         buildShell();
         render();
         if(config.configured())refresh(true);
+        String requested=getIntent().getStringExtra("open_entity");
+        if(requested!=null&&!requested.isEmpty()){
+            detailId=requested;view="entity";render();
+        } else if("plan".equals(Appearance.start(this))){
+            openPlan();
+        }
     }
     @Override protected void onResume(){super.onResume();handler.removeCallbacks(autoSync);handler.postDelayed(autoSync,45000);}
     @Override protected void onPause(){handler.removeCallbacks(autoSync);super.onPause();}
@@ -86,7 +92,11 @@ public final class DashboardActivity extends Activity {
     private TextView t(String text,int size,int color,boolean bold){return CasaUi.label(this,text,size,color,bold);}
     private LinearLayout.LayoutParams p(int width,int height,int marginTop){return CasaUi.lp(this,width,height,marginTop);}
     private void space(LinearLayout l,int px){CasaUi.gap(this,l,px);}
-    private void nav(String screen,String value){view=screen;selected=value;editMode=false;render();scroll.smoothScrollTo(0,0);}
+    private void nav(String screen,String value){
+        if("plan".equals(screen)){openPlan();return;}
+        view=screen;selected=value;editMode=false;render();scroll.smoothScrollTo(0,0);
+    }
+    private void openPlan(){startActivity(new Intent(this,FloorPlanActivity.class));}
     private void buildShell(){
         root=col();root.setBackgroundColor(CasaUi.BG);
         scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setClipToPadding(false);
@@ -127,6 +137,7 @@ public final class DashboardActivity extends Activity {
     private void renderNav(){
         navbar.removeAllViews();
         navItem("⌂","Zuhause","home");
+        navItem("▣","Grundriss","plan");
         navItem("▦","Räume","rooms");
         navItem("☷","Geräte","devices");
         navItem("⚙","Mehr","settings");
@@ -177,6 +188,7 @@ public final class DashboardActivity extends Activity {
         h.addView(edit,p(-2,40,0));body.addView(h);
         space(body,18);
         hero();
+        if("combined".equals(Appearance.start(this)))showPlanPreview();
         if(editMode){
             LinearLayout hint=panel(CasaUi.PANEL);
             hint.addView(t("Startbildschirm anpassen",16,CasaUi.WHITE,true));
@@ -197,19 +209,40 @@ public final class DashboardActivity extends Activity {
             body.addView(tip,p(-1,-2,13));
         }
     }
+    private void showPlanPreview(){
+        section("Hausgrundriss","Interaktiver 2D-Plan");
+        LinearLayout preview=panel(CasaUi.PANEL);
+        FloorPlanStore plans=new FloorPlanStore(this);
+        FloorPlanStore.Floor floor=plans.at(0);
+        Bitmap image=plans.getBitmap(floor);
+        if(image!=null){
+            ImageView thumbnail=new ImageView(this);
+            thumbnail.setImageBitmap(image);
+            thumbnail.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            thumbnail.setBackgroundColor(Appearance.oled(this)?0xFF161A1E:0xFFFFFFFF);
+            preview.addView(thumbnail,p(-1,150,4));
+        }else{
+            preview.addView(t("Noch kein Plan importiert. Lege deinen Bauplan an und positioniere Geräte direkt darin.",
+                13,CasaUi.MUTED,false),p(-1,-2,9));
+        }
+        Button open=CasaUi.pill(this,"Grundriss öffnen →",true,this::openPlan);
+        preview.addView(open,p(-1,44,12));
+    }
     private void hero(){
         LinearLayout hero=col();
         hero.setPadding(d(20),d(19),d(20),d(20));
-        hero.setBackground(CasaUi.gradient(this,Color.rgb(20,88,100),Color.rgb(23,42,67),24));
+        hero.setBackground(Appearance.oled(this)
+            ?CasaUi.gradient(this,0xFF153F3B,0xFF17202A,24)
+            :CasaUi.gradient(this,0xFFEAF8F3,0xFFEAF1FC,24));
         LinearLayout top=row();
         LinearLayout left=col();
-        left.addView(t("MEIN ZUHAUSE",11,Color.rgb(181,245,228),true));
+        left.addView(t("MEIN ZUHAUSE",11,CasaUi.TEAL,true));
         left.addView(t(demoMode?"Entdecke dein Smart Home":"Dein Haus im Überblick",19,CasaUi.WHITE,true),p(-1,-2,7));
         top.addView(left,new LinearLayout.LayoutParams(0,-2,1f));
         TextView status=t(demoMode?"● DEMO":pending?"● VERBINDEN":"● "+connection,10,
                 demoMode?CasaUi.GOLD:CasaUi.TEAL,true);
         status.setPadding(d(10),d(7),d(10),d(7));
-        status.setBackground(CasaUi.rounded(this,Color.rgb(14,48,57),16));
+        status.setBackground(CasaUi.rounded(this,CasaUi.PANEL,16));
         top.addView(status);
         hero.addView(top);
         int lights=0,lit=0, climate=0;
@@ -797,6 +830,10 @@ public final class DashboardActivity extends Activity {
             }).setNegativeButton("Abbrechen",null)
             .setNeutralButton("＋ Neuer Raum",(dialog,w)->newRoom()).show();
     }
+    private void changeTheme(boolean oled){
+        Appearance.setTheme(this,oled);
+        recreate();
+    }
     private void showSettingsPage(){
         topline("Einstellungen","CasaMK · Haus Mazedonien",false);
         section("Verbindung",null);
@@ -811,6 +848,28 @@ public final class DashboardActivity extends Activity {
             demoMode=true;connection="DEMO";render();
         },false);
         box.addView(buttons,p(-1,44,15));
+        section("Design & Startansicht",null);
+        LinearLayout design=panel(CasaUi.PANEL);
+        design.addView(t("Farbschema",18,CasaUi.WHITE,true));
+        design.addView(t("Wähle reines Weiss oder echtes OLED-Schwarz. Alle Ansichten verwenden dieselbe Auswahl.",
+            13,CasaUi.MUTED,false),p(-1,-2,6));
+        LinearLayout themeRow=row();
+        addAction(themeRow,"☀ Vollweiss",()->changeTheme(false),!Appearance.oled(this));
+        addAction(themeRow,"● OLED Schwarz",()->changeTheme(true),Appearance.oled(this));
+        design.addView(themeRow,p(-1,47,11));
+        design.addView(t("Standardansicht beim Öffnen",18,CasaUi.WHITE,true),p(-1,-2,18));
+        String chosen=Appearance.start(this);
+        for(String option:new String[]{"combined","tiles","plan"}){
+            String label="combined".equals(option)?"Kacheln + Planvorschau":
+                "tiles".equals(option)?"Nur Kacheln":"Direkt zum Grundriss";
+            Button choice=CasaUi.pill(this,(chosen.equals(option)?"✓  ":"○  ")+label,
+                chosen.equals(option),()->{
+                    Appearance.setStart(this,option);render();
+                });
+            design.addView(choice,p(-1,43,7));
+        }
+        Button launchPlan=CasaUi.pill(this,"Grundriss bearbeiten",false,this::openPlan);
+        design.addView(launchPlan,p(-1,43,9));
         section("Organisation",null);
         LinearLayout options=panel(CasaUi.PANEL);
         options.addView(t("Räume und Favoriten",19,CasaUi.WHITE,true));
@@ -840,7 +899,7 @@ public final class DashboardActivity extends Activity {
                 }).show();
         });
         security.addView(delete,p(-1,43,12));
-        body.addView(t("CasaMK 0.2 · Modulare Android-Beta · Kein Ersatz für Sicherheits- und Anlagenregelungen.",11,CasaUi.MUTED,false),p(-1,-2,20));
+        body.addView(t("CasaMK 0.3 · Grundriss-Beta · Kein Ersatz für Sicherheits- und Anlagenregelungen.",11,CasaUi.MUTED,false),p(-1,-2,20));
     }
     private void connectDialog(){
         LinearLayout content=col();content.setPadding(d(17),0,d(17),0);
